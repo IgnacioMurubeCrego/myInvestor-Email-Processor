@@ -138,20 +138,38 @@ public class ExcelExporter {
         ctTable.setId(tableId);
         // createTable() doesn't reliably set this for a header-only (no data rows) range.
         ctTable.setRef(area.formatAsString());
+
+        // createTable() already pre-populates autoFilter/tableColumns for ranges with data rows
+        // (but not for a header-only range). Unset before adding ours so we never end up with a
+        // duplicate element, which XMLBeans allows but Excel's schema (maxOccurs=1) rejects.
+        if (ctTable.isSetAutoFilter()) {
+            ctTable.unsetAutoFilter();
+        }
         ctTable.addNewAutoFilter().setRef(area.formatAsString());
 
-        CTTableStyleInfo styleInfo = ctTable.addNewTableStyleInfo();
-        styleInfo.setName("TableStyleMedium9");
-        styleInfo.setShowRowStripes(true);
-        styleInfo.setShowColumnStripes(false);
-
-        CTTableColumns columns = ctTable.addNewTableColumns();
+        // CT_Table requires this element sequence: autoFilter, tableColumns, tableStyleInfo.
+        // tableColumns is mandatory (no isSet/unset pair), so reuse it if createTable() already
+        // added one instead of appending a second (invalid) tableColumns element.
+        CTTableColumns columns = ctTable.getTableColumns();
+        if (columns == null) {
+            columns = ctTable.addNewTableColumns();
+        } else {
+            columns.setTableColumnArray(new CTTableColumn[0]);
+        }
         columns.setCount(headers.length);
         for (int i = 0; i < headers.length; i++) {
             CTTableColumn column = columns.addNewTableColumn();
             column.setId(i + 1);
             column.setName(headers[i]);
         }
+
+        if (ctTable.isSetTableStyleInfo()) {
+            ctTable.unsetTableStyleInfo();
+        }
+        CTTableStyleInfo styleInfo = ctTable.addNewTableStyleInfo();
+        styleInfo.setName("TableStyleMedium9");
+        styleInfo.setShowRowStripes(true);
+        styleInfo.setShowColumnStripes(false);
     }
 
     private void setStringCell(Row row, int col, String value, CellStyle style) {
