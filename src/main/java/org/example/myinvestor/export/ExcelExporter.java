@@ -125,9 +125,15 @@ public class ExcelExporter {
             sheet.setColumnWidth(i, COLUMN_WIDTH_CHARACTERS * 256);
         }
 
-        int lastRow = Math.max(rowCount - 1, 0);
+        // A table/autofilter whose range is only the header row (no data rows below) gets
+        // silently stripped by real Excel on open, even though the file is schema-valid and
+        // openpyxl reads it fine. Skip the table entirely when there's nothing to show.
+        if (rowCount <= 1) {
+            return;
+        }
+
         AreaReference area = new AreaReference(
-                new CellReference(0, 0), new CellReference(lastRow, headers.length - 1),
+                new CellReference(0, 0), new CellReference(rowCount - 1, headers.length - 1),
                 SpreadsheetVersion.EXCEL2007);
 
         XSSFTable table = sheet.createTable(area);
