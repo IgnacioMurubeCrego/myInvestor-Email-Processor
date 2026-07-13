@@ -57,3 +57,7 @@ El `.zip` resultante en `release/` está listo para subirse como asset de una
 Esta herramienta no sustituye el asesoramiento fiscal profesional. Organiza los datos
 de tus propios correos para facilitar tu declaración, pero revisa siempre los importes
 contra tus extractos oficiales de myInvestor.
+
+## Licencia
+
+Distribuido bajo la licencia [MIT](LICENSE).
