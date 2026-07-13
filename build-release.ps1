@@ -8,14 +8,16 @@ $projectDir = $PSScriptRoot
 $appName = "myInvestor Email Processor"
 $releaseName = "myInvestorEmailProcessor-v$Version-win64"
 $distDir = Join-Path $projectDir "dist"
+$jpackageInputDir = Join-Path $projectDir "jpackage-input"
 $releaseRoot = Join-Path $projectDir "release"
 $releaseDir = Join-Path $releaseRoot $releaseName
 $iconPath = Join-Path $projectDir "icon.ico"
 
-Write-Host "== Compilando el proyecto (mvn package) ==" -ForegroundColor Cyan
+Write-Host "== Compilando el proyecto (mvn clean package) ==" -ForegroundColor Cyan
 Push-Location $projectDir
 try {
-    & mvn -q -DskipTests package
+    # "clean" evita que clases obsoletas de compilaciones anteriores (target/classes) acaben en el jar.
+    & mvn -q -DskipTests clean package
     if ($LASTEXITCODE -ne 0) { throw "La compilacion con Maven ha fallado." }
 } finally {
     Pop-Location
@@ -25,10 +27,15 @@ Write-Host "== Generando el ejecutable nativo (jpackage) ==" -ForegroundColor Cy
 if (Test-Path $distDir) {
     Remove-Item -Recurse -Force $distDir
 }
+if (Test-Path $jpackageInputDir) {
+    Remove-Item -Recurse -Force $jpackageInputDir
+}
+New-Item -ItemType Directory -Force -Path $jpackageInputDir | Out-Null
+Copy-Item (Join-Path $projectDir "target\myInvestorStockProcessor.jar") $jpackageInputDir
 
 & jpackage `
     --type app-image `
-    --input (Join-Path $projectDir "target") `
+    --input $jpackageInputDir `
     --main-jar myInvestorStockProcessor.jar `
     --main-class org.example.myinvestor.Main `
     --name $appName `

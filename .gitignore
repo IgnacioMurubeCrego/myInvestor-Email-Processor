@@ -5,6 +5,7 @@ target/
 
 ### Paquetes de distribucion (generados por build-release.ps1 / update-app.ps1) ###
 /release/
+/jpackage-input/
 dependency-reduced-pom.xml
 
 ### IntelliJ IDEA ###
